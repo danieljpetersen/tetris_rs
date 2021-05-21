@@ -78,9 +78,8 @@ enum CollisionType {
 struct Tetromino {
     tetromino_type: u8,
     positions: [u8; 4],
-    spawn_pattern: [[u8; 4]; 4],
-    rotation_pattern: [[u8; 4]; 4],
-    is_rotated: bool,
+    rotation_patterns: [[[u8; 4]; 4]; 4], // 3d array; [pattern, pattern, pattern, pattern]
+    rotation_pattern_index: u8,
     pattern_top_left_row: i32,
     pattern_top_left_col: i32,
     color: Color,
@@ -88,133 +87,244 @@ struct Tetromino {
 
 impl Tetromino {
     fn new(tetromino_type: u8) -> Self {
-        let mut positions = [0 as u8, 0, 0, 0];
-        let mut spawn_pattern = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
-        let mut rotation_pattern = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
         let mut color = BLACK;
+        let mut positions = [0 as u8, 0, 0, 0];
+        let mut rotation_patterns;
 
         match tetromino_type {
             0 => { // I_SHAPE
-                spawn_pattern = [
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                ];
+                rotation_patterns = [
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                    ],
 
-                rotation_pattern = [
-                    [0, 0, 0, 0],
-                    [1, 1, 1, 1],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0],
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 1],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                    ],
+
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 1],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
                 ];
 
                 color = PINK;
             },
 
             1 => { // J_SHAPE
-                spawn_pattern = [
-                    [0, 0, 1, 0],
-                    [0, 0, 1, 0],
-                    [0, 1, 1, 0],
-                    [0, 0, 0, 0],
-                ];
+                rotation_patterns = [
+                    [
+                        [0, 0, 1, 0],
+                        [0, 0, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0],
+                    ],
 
-                rotation_pattern = [
-                    [0, 1, 0, 0],
-                    [0, 1, 1, 1],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0],
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 1, 1],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 0, 1, 1],
+                        [0, 0, 1, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 0, 0, 0],
+                        [0, 1, 1, 1],
+                        [0, 0, 0, 1],
+                        [0, 0, 0, 0],
+                    ],
                 ];
 
                 color = YELLOW;
             },
 
             2 => { // L_SHAPE
-                spawn_pattern = [
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 1, 0],
-                    [0, 0, 0, 0],
-                ];
+                rotation_patterns = [
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0],
+                    ],
 
-                rotation_pattern = [
-                    [0, 0, 0, 0],
-                    [1, 1, 1, 0],
-                    [1, 0, 0, 0],
-                    [0, 0, 0, 0],
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 0],
+                        [1, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [1, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 0, 1, 0],
+                        [1, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
                 ];
 
                 color = GREEN;
             },
 
             3 => { // O_SHAPE
-                spawn_pattern = [
-                    [0, 1, 1, 0],
-                    [0, 1, 1, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0],
-                ];
+                rotation_patterns = [
+                    [
+                        [0, 1, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
 
-                rotation_pattern = [
-                    [0, 1, 1, 0],
-                    [0, 1, 1, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0],
+                    [
+                        [0, 1, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 1, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 1, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
                 ];
 
                 color = BLUE;
             },
 
             4 => { // S_SHAPE
-                spawn_pattern = [
-                    [0, 1, 1, 0],
-                    [1, 1, 0, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0],
-                ];
+                rotation_patterns = [
+                    [
+                        [0, 1, 1, 0],
+                        [1, 1, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
 
-                rotation_pattern = [
-                    [0, 1, 0, 0],
-                    [0, 1, 1, 0],
-                    [0, 0, 1, 0],
-                    [0, 0, 0, 0],
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 1, 1, 0],
+                        [1, 1, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 0],
+                    ],
                 ];
 
                 color = DARKPURPLE;
             },
 
             5 => { // Z_SHAPE
-                spawn_pattern = [
-                    [0, 1, 1, 0],
-                    [0, 0, 1, 1],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0],
-                ];
+                rotation_patterns = [
+                    [
+                        [0, 1, 1, 0],
+                        [0, 0, 1, 1],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
 
-                rotation_pattern = [
-                    [0, 0, 0, 1],
-                    [0, 0, 1, 1],
-                    [0, 0, 1, 0],
-                    [0, 0, 0, 0],
+                    [
+                        [0, 0, 0, 1],
+                        [0, 0, 1, 1],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 1, 1, 0],
+                        [0, 0, 1, 1],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 0, 0, 1],
+                        [0, 0, 1, 1],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 0],
+                    ],
                 ];
 
                 color = ORANGE;
             },
 
             6 => { // T_SHAPE
-                spawn_pattern = [
-                    [0, 1, 0, 0],
-                    [1, 1, 1, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0],
-                ];
+                rotation_patterns = [
+                    [
+                        [0, 1, 0, 0],
+                        [1, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
 
-                rotation_pattern = [
-                    [0, 1, 0, 0],
-                    [0, 1, 1, 0],
-                    [0, 1, 0, 0],
-                    [0, 0, 0, 0],
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
+
+                    [
+                        [0, 1, 0, 0],
+                        [1, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0],
+                    ],
                 ];
 
                 color = BEIGE;
@@ -227,17 +337,16 @@ impl Tetromino {
 
         let pattern_top_left_row = 0 as i32;
         let pattern_top_left_col = (GRID_WIDTH/2 - 2) as i32;
-        positions = Tetromino::transfer_shape_pattern_to_positions(&spawn_pattern, pattern_top_left_row, pattern_top_left_col).unwrap();
+        positions = Tetromino::transfer_shape_pattern_to_positions(&rotation_patterns[0], pattern_top_left_row, pattern_top_left_col).unwrap();
 
         return Self {
             tetromino_type,
             positions,
-            spawn_pattern,
-            rotation_pattern,
-            color,
+            rotation_patterns,
             pattern_top_left_row,
             pattern_top_left_col,
-            is_rotated: false,
+            rotation_pattern_index: 0,
+            color,
         }
     }
 
@@ -247,7 +356,7 @@ impl Tetromino {
         for (row_index, row) in pattern.iter().enumerate() {
             for (col_index, is_occupied) in row.iter().enumerate() {
                 if *is_occupied == 1 {
-                    let desired_index =  Board::get_index(row_index as u8 + row_offset as u8, col_index as u8 + col_offset as u8);
+                    let desired_index =  Board::get_index(row_index as i32 + row_offset as i32, col_index as i32 + col_offset as i32);
                     if desired_index.is_some() {
                         positions[cur_index] = desired_index.unwrap() as u8;
                         cur_index += 1;
@@ -294,12 +403,12 @@ impl Board {
         }
     }
 
-    fn get_index(row: u8, col: u8) -> Option<u8> {
+    fn get_index(row: i32, col: i32) -> Option<u8> {
         if row >= 0 {
             if col >= 0 {
-                if row < GRID_HEIGHT {
-                    if col < GRID_WIDTH {
-                        return Some(GRID_WIDTH * row + col)
+                if row < GRID_HEIGHT as i32 {
+                    if col < GRID_WIDTH as i32 {
+                        return Some((GRID_WIDTH * row as u8 + col as u8) as u8)
                     }
                 }
             }
@@ -352,6 +461,7 @@ struct App {
     tetromino_types: [Tetromino; 7],
     next_tick_time: f64,
     input_debounce_timer: f64,
+    frame_count: u64
 }
 
 impl App {
@@ -375,13 +485,16 @@ impl App {
             next_shape,
             current_shape,
             next_tick_time: get_time() + TICKS_PER_SECOND,
-            input_debounce_timer: get_time()
+            input_debounce_timer: get_time(),
+            frame_count: 1
         }
     }
 
     // ----
 
     fn update(&mut self) {
+        self.frame_count += 1;
+
         let mut x_offset: i32 = 0;
         let mut y_offset: i32 = 0;
 
@@ -391,63 +504,64 @@ impl App {
             y_offset += 1;
         }
 
-        if cur_time - self.input_debounce_timer > 0.1 {
-            self.input_debounce_timer = cur_time;
+        let mut reset_debounce = false;
+        let debounce_time = 0.1;
 
-            if is_key_down(KeyCode::Right) {
+        if is_key_down(KeyCode::Right) {
+            if ((cur_time - self.input_debounce_timer > debounce_time)) {
+                reset_debounce = true;
                 x_offset += 1;
             }
-            if is_key_down(KeyCode::Left) {
+        }
+        if is_key_down(KeyCode::Left) {
+            if ((cur_time - self.input_debounce_timer > debounce_time)) {
+                reset_debounce = true;
                 x_offset -= 1;
             }
-            if is_key_down(KeyCode::Down) {
+        }
+        if is_key_down(KeyCode::Down) {
+            if ((cur_time - self.input_debounce_timer > debounce_time)) {
+                reset_debounce = true;
                 y_offset += 1;
             }
-            if is_key_down(KeyCode::Up) {
+        }
 
-                // rotate
+        if is_key_pressed(KeyCode::Up) {
+            let mut desired_positions = [0,0,0,0];
+            let mut collision = false;
+            let mut rotation_index = self.current_shape.rotation_pattern_index + 1;
+            if rotation_index >= 4 {
+                rotation_index = 0;
+            }
 
-                // let pattern = self.current_shape.rotation_pattern;
-                let mut desired_positions = [0,0,0,0];
-                let mut collision = false;
+            let result = Tetromino::transfer_shape_pattern_to_positions(&self.current_shape.rotation_patterns[rotation_index as usize], self.current_shape.pattern_top_left_row, self.current_shape.pattern_top_left_col);
 
-                if self.current_shape.is_rotated {
-                    let result = Tetromino::transfer_shape_pattern_to_positions(&self.current_shape.spawn_pattern, self.current_shape.pattern_top_left_row, self.current_shape.pattern_top_left_col);
+            if result.is_some() {
+                desired_positions = result.unwrap();
+            }
+            else {
+                collision = true; // terrible
+            }
 
-                    if result.is_some() {
-                        desired_positions = result.unwrap();
-                    }
-                    else {
-                        collision = true; // terrible
-                    }
+            for i in 0..4 {
+                if self.board.grid[desired_positions[i] as usize].occupied {
+                    collision = true;
+                    break;
                 }
-                else {
-                    let result = Tetromino::transfer_shape_pattern_to_positions(&self.current_shape.rotation_pattern, self.current_shape.pattern_top_left_row, self.current_shape.pattern_top_left_col);
+            }
 
-                    if result.is_some() {
-                        desired_positions = result.unwrap();
-                    }
-                    else {
-                        collision = true; // terrible
-                    }
-                }
-
-                for i in 0..4 {
-                    if self.board.grid[desired_positions[i] as usize].occupied {
-                        collision = true;
-                        break;
-                    }
-                }
-
-                if collision != true {
-                    self.current_shape.positions = desired_positions;
-                    self.current_shape.is_rotated = !self.current_shape.is_rotated;
-                }
+            if collision != true {
+                self.current_shape.positions = desired_positions;
+                self.current_shape.rotation_pattern_index = rotation_index;
             }
         }
 
         if y_offset == 2 { // seems reasonable to limit us to 1 vertical movement per tick. this also fixes bug with collision detection reverting back 2 squares instead of (the correct) 1
             y_offset = 1;
+        }
+
+        if reset_debounce {
+            self.input_debounce_timer = get_time();
         }
 
         // segregating into two separate calls so that we can have different behavior for moving left / right and moving vertically (vertically we want to add shape to board on collision)
@@ -474,7 +588,7 @@ impl App {
             let initial_index = self.current_shape.positions[i];
             let initial_row = self.board.grid[initial_index as usize].row;
             let initial_col = self.board.grid[initial_index as usize].col;
-            let desired_index = Board::get_index((initial_row as i32 + y_offset) as u8, (initial_col as i32 + x_offset) as u8);
+            let desired_index = Board::get_index((initial_row as i32 + y_offset) as i32, (initial_col as i32 + x_offset) as i32);
 
             if desired_index.is_some() {
                 desired_positions[i] = desired_index.unwrap();
@@ -526,7 +640,7 @@ impl App {
             let mut answer = true;
 
             for x in 0..GRID_WIDTH {
-                let index = Board::get_index(y, x).unwrap();
+                let index = Board::get_index(y as i32, x as i32).unwrap();
 
                 if self.board.grid[index as usize].occupied != true {
                     answer = false;
@@ -545,14 +659,14 @@ impl App {
     fn clear_line(&mut self, row: u8) {
         for x in 0..GRID_WIDTH {
             let mut y = row;
-            let mut index = Board::get_index(y, x).unwrap();
+            let mut index = Board::get_index(y as i32, x as i32).unwrap();
             self.board.grid[index as usize].occupied = false; // clear
 
             while y >= 1 { // move column down
                 y -= 1;
 
                 let previous_index = index;
-                index = Board::get_index(y, x).unwrap();
+                index = Board::get_index(y as i32, x as i32).unwrap();
 
                 if self.board.grid[index as usize].occupied {
                     self.board.grid[index as usize].occupied = false;
