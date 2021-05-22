@@ -8,4 +8,5 @@ edition = "2018"
 
 [dependencies]
 macroquad = "0.3"
+getrandom = { version = "0.2", features = ["js"] }
 rand = "0.8.3"

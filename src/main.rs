@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 use ::rand::Rng;
 use ::rand::thread_rng;
-use std::any::Any;
 
 // ----
 
@@ -78,7 +77,7 @@ enum CollisionType {
 struct Tetromino {
     tetromino_type: u8,
     positions: [u8; 4],
-    rotation_patterns: [[[u8; 4]; 4]; 4], // 3d array; [pattern, pattern, pattern, pattern]
+    rotation_patterns: [[[u8; 4]; 4]; 4],
     rotation_pattern_index: u8,
     pattern_top_left_row: i32,
     pattern_top_left_col: i32,
@@ -87,9 +86,9 @@ struct Tetromino {
 
 impl Tetromino {
     fn new(tetromino_type: u8) -> Self {
-        let mut color = BLACK;
-        let mut positions = [0 as u8, 0, 0, 0];
-        let mut rotation_patterns;
+        let color;
+        let positions;
+        let rotation_patterns;
 
         match tetromino_type {
             0 => { // I_SHAPE
@@ -466,8 +465,8 @@ struct App {
 
 impl App {
     fn new() -> Self {
-        let mut board = Board::new();
-        let mut tetromino_types = [
+        let board = Board::new();
+        let tetromino_types = [
                 Tetromino::new(0),
                 Tetromino::new(1),
                 Tetromino::new(2),
@@ -476,8 +475,8 @@ impl App {
                 Tetromino::new(5),
                 Tetromino::new(6)
             ];
-        let mut next_shape = Tetromino::new(thread_rng().gen_range(0..7));
-        let mut current_shape = Tetromino::new(thread_rng().gen_range(0..7));
+        let next_shape = Tetromino::new(thread_rng().gen_range(0..7));
+        let current_shape = Tetromino::new(thread_rng().gen_range(0..7));
 
         Self {
             board,
@@ -508,19 +507,19 @@ impl App {
         let debounce_time = 0.1;
 
         if is_key_down(KeyCode::Right) {
-            if ((cur_time - self.input_debounce_timer > debounce_time)) {
+            if cur_time - self.input_debounce_timer > debounce_time {
                 reset_debounce = true;
                 x_offset += 1;
             }
         }
         if is_key_down(KeyCode::Left) {
-            if ((cur_time - self.input_debounce_timer > debounce_time)) {
+            if cur_time - self.input_debounce_timer > debounce_time {
                 reset_debounce = true;
                 x_offset -= 1;
             }
         }
         if is_key_down(KeyCode::Down) {
-            if ((cur_time - self.input_debounce_timer > debounce_time)) {
+            if cur_time - self.input_debounce_timer > debounce_time {
                 reset_debounce = true;
                 y_offset += 1;
             }
